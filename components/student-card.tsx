@@ -34,6 +34,26 @@ function gradeSummary(score: QuestionScore): string {
   return CRITERIA.map(({ key }) => score[key] || "–").join("/");
 }
 
+/** Points down when the section is collapsed, up when it is expanded. */
+function Chevron({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`ml-auto size-4 shrink-0 text-zinc-400 transition-transform dark:text-zinc-500 ${
+        expanded ? "rotate-180" : ""
+      }`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function isStarted(score: QuestionScore): boolean {
   return CRITERIA.some(({ key }) => score[key] !== "") || score.remark !== "";
 }
@@ -56,7 +76,7 @@ export default function StudentCard({
 
   return (
     <article className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <header className="flex items-start gap-2 border-b border-zinc-200 p-3 dark:border-zinc-800">
+      <header className="flex items-center gap-2 border-b border-zinc-200 p-3 dark:border-zinc-800">
         <input
           aria-label="Student name"
           value={row.name}
@@ -78,7 +98,7 @@ export default function StudentCard({
       <div className="flex items-center gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
         <label
           htmlFor={`set-${row.id}`}
-          className="text-sm font-medium text-zinc-600 dark:text-zinc-400"
+          className="shrink-0 text-sm font-medium text-zinc-600 dark:text-zinc-400"
         >
           Set
         </label>
@@ -86,7 +106,7 @@ export default function StudentCard({
           id={`set-${row.id}`}
           value={row.set}
           onChange={(event) => onSetChange(event.target.value as SetId | "")}
-          className="rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
+          className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1.5 text-base outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
         >
           <option value="">–</option>
           {SETS.map((set) => (
@@ -125,9 +145,7 @@ export default function StudentCard({
                     {gradeSummary(score)}
                   </span>
                 )}
-                <span className="ml-auto text-xs text-zinc-400">
-                  {expanded ? "▲" : "▼"}
-                </span>
+                <Chevron expanded={expanded} />
               </button>
             </h3>
 
