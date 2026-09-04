@@ -9,6 +9,8 @@ import {
   useSyncExternalStore,
 } from "react";
 import GradeSelect from "@/components/grade-select";
+import RowStatusBadge from "@/components/row-status-badge";
+import StudentCard from "@/components/student-card";
 import {
   loadRows,
   loadSynced,
@@ -16,9 +18,9 @@ import {
   saveRows,
   saveSynced,
   snapshotOf,
-  type RowStatus,
   type SyncedSnapshot,
 } from "@/lib/local-sheet";
+import { useMediaQuery } from "@/lib/use-media-query";
 import {
   CRITERIA,
   QUESTIONS,
@@ -37,18 +39,6 @@ type SyncOutcome = {
   skipped: number;
 };
 
-const STATUS_STYLE: Record<RowStatus, string> = {
-  new: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-  edited: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
-  synced: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
-};
-
-const STATUS_LABEL: Record<RowStatus, string> = {
-  new: "New",
-  edited: "Edited",
-  synced: "Synced",
-};
-
 const subscribeNever = () => () => {};
 
 /**
@@ -65,13 +55,19 @@ export default function SheetEditor() {
 
   if (!mounted) {
     return (
-      <p className="p-6 text-sm text-zinc-500 dark:text-zinc-400">Loading sheet…</p>
+      <p className="p-6 text-sm text-zinc-500 dark:text-zinc-400">
+        Loading sheet…
+      </p>
     );
   }
   return <Sheet />;
 }
 
 function Sheet() {
+  // The 15-cell table row cannot fit a phone; below `md` each student
+  // becomes a card instead. Rendered as a branch, not two hidden copies,
+  // so the sheet has only one set of form controls.
+  const isWideViewport = useMediaQuery("(min-width: 768px)");
   const [rows, setRows] = useState<StudentRow[]>(loadRows);
   const [synced, setSynced] = useState<SyncedSnapshot>(loadSynced);
   const [syncing, setSyncing] = useState(false);
@@ -97,7 +93,12 @@ function Sheet() {
   );
 
   const setQuestionGrade = useCallback(
-    (id: string, question: number, criterion: CriterionKey, value: Grade | "") => {
+    (
+      id: string,
+      question: number,
+      criterion: CriterionKey,
+      value: Grade | "",
+    ) => {
       mutateRow(id, (row) => ({
         ...row,
         questions: row.questions.map((score, index) =>
@@ -136,7 +137,10 @@ function Sheet() {
   );
 
   const pending = useMemo(
-    () => rows.filter((row) => statuses.get(row.id) !== "synced" && row.name.trim()),
+    () =>
+      rows.filter(
+        (row) => statuses.get(row.id) !== "synced" && row.name.trim(),
+      ),
     [rows, statuses],
   );
 
@@ -190,8 +194,8 @@ function Sheet() {
 
         {outcome && (
           <span className="text-sm text-green-700 dark:text-green-400">
-            {outcome.added} added, {outcome.updated} updated, {outcome.unchanged}{" "}
-            unchanged
+            {outcome.added} added, {outcome.updated} updated,{" "}
+            {outcome.unchanged} unchanged
             {outcome.skipped > 0 && `, ${outcome.skipped} skipped`}
           </span>
         )}
@@ -202,7 +206,8 @@ function Sheet() {
         )}
         {unnamed > 0 && (
           <span className="text-sm text-amber-700 dark:text-amber-400">
-            {unnamed} row{unnamed === 1 ? "" : "s"} without a name won&apos;t sync
+            {unnamed} row{unnamed === 1 ? "" : "s"} without a name won&apos;t
+            sync
           </span>
         )}
 
@@ -219,153 +224,181 @@ function Sheet() {
       </div>
 
       <div className="flex-1 overflow-auto">
-        <table className="border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-900">
-            <tr>
-              <th
-                rowSpan={2}
-                className="sticky left-0 z-20 border border-zinc-200 bg-zinc-50 px-3 py-2 text-left font-semibold dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                Name
-              </th>
-              <th
-                rowSpan={2}
-                className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
-              >
-                Set
-              </th>
-              {QUESTIONS.map((question) => (
+        {isWideViewport ? (
+          <table className="border-collapse text-sm">
+            <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-900">
+              <tr>
                 <th
-                  key={question}
-                  colSpan={CRITERIA.length + 1}
-                  className="border border-zinc-200 px-2 py-2 text-center font-semibold dark:border-zinc-800"
+                  rowSpan={2}
+                  className="sticky left-0 z-20 border border-zinc-200 bg-zinc-50 px-3 py-2 text-left font-semibold dark:border-zinc-800 dark:bg-zinc-900"
                 >
-                  Q{question + 1}
+                  Name
                 </th>
-              ))}
-              <th
-                rowSpan={2}
-                className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
-              >
-                Status
-              </th>
-              <th
-                rowSpan={2}
-                className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
-              >
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-            <tr>
-              {QUESTIONS.map((question) => (
-                <Fragment key={question}>
-                  {CRITERIA.map(({ key, label }) => (
-                    <th
-                      key={key}
-                      className="border border-zinc-200 px-2 py-1.5 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:text-zinc-400"
-                    >
-                      {label}
-                    </th>
-                  ))}
-                  <th className="border border-zinc-200 px-2 py-1.5 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-                    Remark
+                <th
+                  rowSpan={2}
+                  className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
+                >
+                  Set
+                </th>
+                {QUESTIONS.map((question) => (
+                  <th
+                    key={question}
+                    colSpan={CRITERIA.length + 1}
+                    className="border border-zinc-200 px-2 py-2 text-center font-semibold dark:border-zinc-800"
+                  >
+                    Q{question + 1}
                   </th>
-                </Fragment>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const status = statuses.get(row.id) ?? "new";
-              return (
-                <tr key={row.id} className="even:bg-zinc-50/60 dark:even:bg-zinc-900/40">
-                  <td className="sticky left-0 z-10 border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950">
-                    <input
-                      aria-label="Student name"
-                      value={row.name}
-                      onChange={(event) =>
-                        mutateRow(row.id, (current) => ({
-                          ...current,
-                          name: event.target.value,
-                        }))
-                      }
-                      placeholder="Student name"
-                      className="w-44 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
-                    />
-                  </td>
-                  <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
-                    <select
-                      aria-label="Paper set"
-                      value={row.set}
-                      onChange={(event) =>
-                        mutateRow(row.id, (current) => ({
-                          ...current,
-                          set: event.target.value as SetId | "",
-                        }))
-                      }
-                      className="w-14 rounded border border-zinc-300 bg-white px-1.5 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
-                    >
-                      <option value="">–</option>
-                      {SETS.map((set) => (
-                        <option key={set} value={set}>
-                          {set}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                ))}
+                <th
+                  rowSpan={2}
+                  className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
+                >
+                  Status
+                </th>
+                <th
+                  rowSpan={2}
+                  className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
+                >
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+              <tr>
+                {QUESTIONS.map((question) => (
+                  <Fragment key={question}>
+                    {CRITERIA.map(({ key, label }) => (
+                      <th
+                        key={key}
+                        className="border border-zinc-200 px-2 py-1.5 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:text-zinc-400"
+                      >
+                        {label}
+                      </th>
+                    ))}
+                    <th className="border border-zinc-200 px-2 py-1.5 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                      Remark
+                    </th>
+                  </Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const status = statuses.get(row.id) ?? "new";
+                return (
+                  <tr
+                    key={row.id}
+                    className="even:bg-zinc-50/60 dark:even:bg-zinc-900/40"
+                  >
+                    <td className="sticky left-0 z-10 border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950">
+                      <input
+                        aria-label="Student name"
+                        value={row.name}
+                        onChange={(event) =>
+                          mutateRow(row.id, (current) => ({
+                            ...current,
+                            name: event.target.value,
+                          }))
+                        }
+                        placeholder="Student name"
+                        className="w-44 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
+                      />
+                    </td>
+                    <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
+                      <select
+                        aria-label="Paper set"
+                        value={row.set}
+                        onChange={(event) =>
+                          mutateRow(row.id, (current) => ({
+                            ...current,
+                            set: event.target.value as SetId | "",
+                          }))
+                        }
+                        className="w-14 rounded border border-zinc-300 bg-white px-1.5 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
+                      >
+                        <option value="">–</option>
+                        {SETS.map((set) => (
+                          <option key={set} value={set}>
+                            {set}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
 
-                  {QUESTIONS.map((question) => (
-                    <Fragment key={question}>
-                      {CRITERIA.map(({ key, label }) => (
-                        <td
-                          key={key}
-                          className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800"
-                        >
-                          <GradeSelect
-                            label={`Q${question + 1} ${label} for ${row.name || "unnamed student"}`}
-                            value={row.questions[question][key]}
-                            onChange={(value) =>
-                              setQuestionGrade(row.id, question, key, value)
+                    {QUESTIONS.map((question) => (
+                      <Fragment key={question}>
+                        {CRITERIA.map(({ key, label }) => (
+                          <td
+                            key={key}
+                            className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800"
+                          >
+                            <GradeSelect
+                              label={`Q${question + 1} ${label} for ${row.name || "unnamed student"}`}
+                              value={row.questions[question][key]}
+                              onChange={(value) =>
+                                setQuestionGrade(row.id, question, key, value)
+                              }
+                            />
+                          </td>
+                        ))}
+                        <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
+                          <input
+                            aria-label={`Q${question + 1} remark for ${row.name || "unnamed student"}`}
+                            value={row.questions[question].remark}
+                            onChange={(event) =>
+                              setQuestionRemark(
+                                row.id,
+                                question,
+                                event.target.value,
+                              )
                             }
+                            placeholder="Remark"
+                            className="w-40 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
                           />
                         </td>
-                      ))}
-                      <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
-                        <input
-                          aria-label={`Q${question + 1} remark for ${row.name || "unnamed student"}`}
-                          value={row.questions[question].remark}
-                          onChange={(event) =>
-                            setQuestionRemark(row.id, question, event.target.value)
-                          }
-                          placeholder="Remark"
-                          className="w-40 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
-                        />
-                      </td>
-                    </Fragment>
-                  ))}
+                      </Fragment>
+                    ))}
 
-                  <td className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800">
-                    <span
-                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLE[status]}`}
-                    >
-                      {STATUS_LABEL[status]}
-                    </span>
-                  </td>
-                  <td className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800">
-                    <button
-                      type="button"
-                      onClick={() => deleteRow(row.id)}
-                      title="Remove this row from the local sheet"
-                      className="rounded px-1.5 py-0.5 text-xs text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950 dark:hover:text-red-400"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800">
+                      <RowStatusBadge status={status} />
+                    </td>
+                    <td className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800">
+                      <button
+                        type="button"
+                        onClick={() => deleteRow(row.id)}
+                        title="Remove this row from the local sheet"
+                        className="rounded px-1.5 py-0.5 text-xs text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950 dark:hover:text-red-400"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col gap-3 p-3">
+            {rows.map((row) => (
+              <StudentCard
+                key={row.id}
+                row={row}
+                status={statuses.get(row.id) ?? "new"}
+                onNameChange={(value) =>
+                  mutateRow(row.id, (current) => ({ ...current, name: value }))
+                }
+                onSetChange={(value) =>
+                  mutateRow(row.id, (current) => ({ ...current, set: value }))
+                }
+                onGradeChange={(question, criterion, value) =>
+                  setQuestionGrade(row.id, question, criterion, value)
+                }
+                onRemarkChange={(question, value) =>
+                  setQuestionRemark(row.id, question, value)
+                }
+                onRemove={() => deleteRow(row.id)}
+              />
+            ))}
+          </div>
+        )}
 
         {rows.length === 0 && (
           <p className="p-6 text-sm text-zinc-500 dark:text-zinc-400">

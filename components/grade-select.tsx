@@ -6,16 +6,23 @@ type Props = {
   value: Grade | "";
   onChange: (value: Grade | "") => void;
   label: string;
+  /** Overrides the default width; the card layout stretches these to fill. */
+  className?: string;
 };
 
 /** A-E grade picker; blank means "not yet graded". */
-export default function GradeSelect({ value, onChange, label }: Props) {
+export default function GradeSelect({
+  value,
+  onChange,
+  label,
+  className = "w-14",
+}: Props) {
   return (
     <select
       aria-label={label}
       value={value}
       onChange={(event) => onChange(event.target.value as Grade | "")}
-      className={`w-14 rounded border px-1.5 py-1 text-sm tabular-nums outline-none focus:border-zinc-900 dark:focus:border-zinc-300 ${
+      className={`${className} rounded border px-1.5 py-1 text-sm tabular-nums outline-none focus:border-zinc-900 dark:focus:border-zinc-300 ${
         value
           ? "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950"
           : "border-dashed border-zinc-300 bg-zinc-50 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
