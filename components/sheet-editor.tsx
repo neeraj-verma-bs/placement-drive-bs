@@ -9,6 +9,8 @@ import {
   useSyncExternalStore,
 } from "react";
 import GradeSelect from "@/components/grade-select";
+import ConfirmDialog from "@/components/confirm-dialog";
+import { TrashIcon } from "@/components/icons";
 import RowStatusBadge from "@/components/row-status-badge";
 import StudentCard from "@/components/student-card";
 import {
@@ -73,6 +75,7 @@ function Sheet() {
   const [syncing, setSyncing] = useState(false);
   const [outcome, setOutcome] = useState<SyncOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<StudentRow | null>(null);
 
   useEffect(() => {
     saveRows(rows);
@@ -129,6 +132,7 @@ function Sheet() {
   function deleteRow(id: string) {
     setOutcome(null);
     setRows((current) => current.filter((row) => row.id !== id));
+    setPendingDelete(null);
   }
 
   const statuses = useMemo(
@@ -363,11 +367,12 @@ function Sheet() {
                     <td className="border border-zinc-200 px-2 py-1 text-center dark:border-zinc-800">
                       <button
                         type="button"
-                        onClick={() => deleteRow(row.id)}
+                        onClick={() => setPendingDelete(row)}
+                        aria-label={`Remove ${row.name || "this student"} from the local sheet`}
                         title="Remove this row from the local sheet"
-                        className="rounded px-1.5 py-0.5 text-xs text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950 dark:hover:text-red-400"
+                        className="rounded p-1.5 text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950 dark:hover:text-red-400"
                       >
-                        Remove
+                        <TrashIcon className="size-4" />
                       </button>
                     </td>
                   </tr>
@@ -394,7 +399,7 @@ function Sheet() {
                 onRemarkChange={(question, value) =>
                   setQuestionRemark(row.id, question, value)
                 }
-                onRemove={() => deleteRow(row.id)}
+                onRemove={() => setPendingDelete(row)}
               />
             ))}
           </div>
@@ -406,6 +411,18 @@ function Sheet() {
           </p>
         )}
       </div>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Remove this student?"
+          description={`${
+            pendingDelete.name.trim() || "This unnamed row"
+          } will be removed from your local sheet. Anything already synced stays in the combined list.`}
+          confirmLabel="Remove"
+          onConfirm={() => deleteRow(pendingDelete.id)}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
