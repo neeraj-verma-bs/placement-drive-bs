@@ -184,17 +184,6 @@ function Sheet() {
         >
           Add student
         </button>
-        <button
-          type="button"
-          onClick={sync}
-          disabled={syncing || pending.length === 0}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
-        >
-          {syncing
-            ? "Syncing…"
-            : `Sync to combined list${pending.length ? ` (${pending.length})` : ""}`}
-        </button>
-
         <span className="text-sm text-zinc-500 dark:text-zinc-400">
           {rows.length} row{rows.length === 1 ? "" : "s"} · saved locally
         </span>
@@ -216,6 +205,17 @@ function Sheet() {
             {unnamed} row{unnamed === 1 ? "" : "s"} without a name won&apos;t sync
           </span>
         )}
+
+        <button
+          type="button"
+          onClick={sync}
+          disabled={syncing || pending.length === 0}
+          className="ml-auto rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
+        >
+          {syncing
+            ? "Syncing…"
+            : `Sync to combined list${pending.length ? ` (${pending.length})` : ""}`}
+        </button>
       </div>
 
       <div className="flex-1 overflow-auto">
