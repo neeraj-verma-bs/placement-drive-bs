@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Placement Drive — subjective round evaluation sheet
 
-## Getting Started
+Evaluators score students on the subjective round: 5 paper sets, 3 questions per
+set, one set per student. Each question is graded **A–E** on Logic, Explanation,
+Time Complexity and Space Complexity, plus a free-text Remark.
 
-First, run the development server:
+## Screens
+
+| Route       | What it is                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `/`         | **My sheet** — the evaluator's own spreadsheet. Lives in `localStorage`, never auto-uploaded.  |
+| `/combined` | **Combined list** — everything every evaluator has synced, read from MongoDB.                 |
+| `/login`    | The single password gate.                                                                     |
+
+The individual sheet reaches the server *only* when **Sync to combined list** is
+pressed. Rows show a status badge — `New`, `Edited` or `Synced` — so it is clear
+what a sync will actually push.
+
+## Idempotent sync
+
+Every row carries a client-generated UUID, assigned when the row is added. On
+sync the server hashes each row's content (`lib/schema.ts` → `rowContent`) and
+compares it against the stored `contentHash`:
+
+- id not in the database → **insert**
+- id present, hash differs → **update**
+- id present, hash identical → **skipped, not written** (`syncedAt` unchanged)
+
+So re-syncing an unchanged sheet is a no-op, and syncing twice never duplicates a
+student. Rows without a name are treated as unfilled drafts and are not synced.
+Removing a row locally does not delete it from the combined list — sync only adds
+and updates.
+
+The response reports what happened: `{ added, updated, unchanged, skipped }`.
+
+## Auth
+
+One shared password for the whole app, from `APP_PASSWORD` — there are no
+individual accounts. A correct password sets an HMAC-signed, `httpOnly` session
+cookie (12h) that `proxy.ts` verifies at the edge for every route except the
+login page and the login endpoint; unauthenticated API calls get a `401`, page
+requests are redirected to `/login`.
+
+## Setup
 
 ```bash
+cp .env.example .env.local   # then fill in the values
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required environment variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable         | Purpose                                                       |
+| ---------------- | ------------------------------------------------------------- |
+| `APP_PASSWORD`   | The single shared password.                                   |
+| `SESSION_SECRET` | Signs the session cookie. `openssl rand -base64 32`.          |
+| `MONGODB_URI`    | Connection string.                                            |
+| `MONGODB_DB`     | Database name (defaults to `placement_drive`).                |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Synced rows land in the `student_rows` collection, `_id` being the row's UUID.
 
-## Learn More
+## Layout
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  page.tsx              individual sheet (renders components/sheet-editor)
+  combined/page.tsx     combined list, read from MongoDB
+  login/                the gate
+  api/sync/route.ts     idempotent upsert
+  api/rows/route.ts     combined list as JSON
+  api/auth/…            login / logout
+components/
+  sheet-editor.tsx      the localStorage-backed spreadsheet
+  grade-select.tsx      A–E picker
+  site-header.tsx       nav + sign out
+lib/
+  schema.ts             grades, sets, criteria, row parsing, content digest
+  auth.ts               password check + signed session token
+  mongodb.ts            connection, StoredRow shape
+  local-sheet.ts        localStorage read/write, row status
+proxy.ts                the auth gate
+```
