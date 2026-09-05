@@ -18,6 +18,7 @@ type Loaded =
 type CombinedRow = {
   id: string;
   name: string;
+  rollNo: string;
   set: string;
   questions: QuestionScore[];
   syncedAt: string;
@@ -35,6 +36,7 @@ async function loadRows(): Promise<Loaded> {
       rows: docs.map((doc) => ({
         id: doc._id,
         name: doc.name,
+        rollNo: doc.rollNo ?? "",
         set: doc.set,
         questions: doc.questions,
         syncedAt: doc.syncedAt.toISOString(),
@@ -109,6 +111,12 @@ export default async function CombinedPage() {
                   rowSpan={2}
                   className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
                 >
+                  Roll No
+                </th>
+                <th
+                  rowSpan={2}
+                  className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
+                >
                   Set
                 </th>
                 {QUESTIONS.map((question) => (
@@ -150,6 +158,9 @@ export default async function CombinedPage() {
                 <tr key={row.id} className="even:bg-zinc-50/60 dark:even:bg-zinc-900/40">
                   <td className="sticky left-0 z-10 border border-zinc-200 bg-white px-3 py-1.5 font-medium dark:border-zinc-800 dark:bg-zinc-950">
                     {row.name}
+                  </td>
+                  <td className="border border-zinc-200 px-2 py-1.5 whitespace-nowrap dark:border-zinc-800">
+                    {row.rollNo || "–"}
                   </td>
                   <td className="border border-zinc-200 px-2 py-1.5 text-center dark:border-zinc-800">
                     {row.set || "–"}

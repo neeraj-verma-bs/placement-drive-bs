@@ -4,8 +4,8 @@ import { CRITERIA, QUESTIONS, questionLabel } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
-/** Name, Set, then five columns per question, then the sync timestamp. */
-const LEAD_COLUMNS = 2;
+/** Name, Roll No, Set, then five columns per question, then the sync timestamp. */
+const LEAD_COLUMNS = 3;
 const COLUMNS_PER_QUESTION = CRITERIA.length + 1;
 
 function columnLetter(index: number): string {
@@ -28,8 +28,8 @@ export async function GET() {
 
   // Row 1: Name | Set | Q1 …spanned… | Q2 | Q3 | Last synced
   // Row 2:             | Logic | Explanation | Time | Space | Remark | …
-  const topRow: string[] = ["Name", "Set"];
-  const subRow: string[] = ["", ""];
+  const topRow: string[] = ["Name", "Roll No", "Set"];
+  const subRow: string[] = ["", "", ""];
   for (const question of QUESTIONS) {
     topRow.push(questionLabel(question), "", "", "", "");
     subRow.push(...CRITERIA.map(({ label }) => label), "Remark");
@@ -43,6 +43,7 @@ export async function GET() {
   // Name, Set and Last synced span both header rows; each question spans its five.
   sheet.mergeCells("A1:A2");
   sheet.mergeCells("B1:B2");
+  sheet.mergeCells("C1:C2");
   sheet.mergeCells(`${lastColumn}1:${lastColumn}2`);
   for (const question of QUESTIONS) {
     const first = LEAD_COLUMNS + question * COLUMNS_PER_QUESTION + 1;
@@ -58,7 +59,7 @@ export async function GET() {
   }
 
   for (const doc of docs) {
-    const values: (string | Date)[] = [doc.name, doc.set];
+    const values: (string | Date)[] = [doc.name, doc.rollNo ?? "", doc.set];
     for (const question of QUESTIONS) {
       const score = doc.questions[question];
       values.push(
@@ -78,6 +79,7 @@ export async function GET() {
       (position - LEAD_COLUMNS) % COLUMNS_PER_QUESTION === 0;
 
     if (position === 1) column.width = 24;
+    else if (position === 2) column.width = 16;
     else if (position === totalColumns) column.width = 20;
     else if (isRemark) column.width = 32;
     else column.width = 12;

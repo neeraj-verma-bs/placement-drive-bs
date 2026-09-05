@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         update: {
           $set: {
             name: row.name.trim(),
+            rollNo: row.rollNo.trim(),
             set: row.set,
             questions: row.questions,
             updatedAt: row.updatedAt,

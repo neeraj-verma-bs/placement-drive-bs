@@ -36,6 +36,8 @@ export type StudentRow = {
   /** Client-generated, stable across syncs — the idempotency key. */
   id: string;
   name: string;
+  /** The student's roll number, as printed on their paper. */
+  rollNo: string;
   set: SetId | "";
   questions: QuestionScore[];
   /** ISO timestamp of the last local edit. */
@@ -50,6 +52,7 @@ export function emptyRow(id: string): StudentRow {
   return {
     id,
     name: "",
+    rollNo: "",
     set: "",
     questions: Array.from({ length: QUESTION_COUNT }, emptyQuestionScore),
     updatedAt: new Date().toISOString(),
@@ -64,6 +67,7 @@ export function emptyRow(id: string): StudentRow {
 export function rowContent(row: StudentRow): string {
   return JSON.stringify([
     row.name.trim(),
+    row.rollNo.trim(),
     row.set,
     row.questions.map((q) => [
       q.logic,
@@ -103,6 +107,7 @@ export function parseRow(input: unknown): StudentRow | null {
   return {
     id: raw.id,
     name: typeof raw.name === "string" ? raw.name.slice(0, 200) : "",
+    rollNo: typeof raw.rollNo === "string" ? raw.rollNo.slice(0, 60) : "",
     set: isSetId(raw.set) ? raw.set : "",
     questions,
     updatedAt:

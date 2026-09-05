@@ -257,6 +257,12 @@ function Sheet() {
                   rowSpan={2}
                   className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
                 >
+                  Roll No
+                </th>
+                <th
+                  rowSpan={2}
+                  className="border border-zinc-200 px-2 py-2 font-semibold dark:border-zinc-800"
+                >
                   Set
                 </th>
                 {QUESTIONS.map((question) => (
@@ -319,6 +325,20 @@ function Sheet() {
                         }
                         placeholder="Student name"
                         className="w-44 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
+                      />
+                    </td>
+                    <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
+                      <input
+                        aria-label="Roll number"
+                        value={row.rollNo}
+                        onChange={(event) =>
+                          mutateRow(row.id, (current) => ({
+                            ...current,
+                            rollNo: event.target.value,
+                          }))
+                        }
+                        placeholder="Roll no"
+                        className="w-28 rounded border border-zinc-300 bg-white px-2 py-1 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:border-zinc-300"
                       />
                     </td>
                     <td className="border border-zinc-200 px-2 py-1 dark:border-zinc-800">
@@ -404,6 +424,9 @@ function Sheet() {
                 status={statuses.get(row.id) ?? "new"}
                 onNameChange={(value) =>
                   mutateRow(row.id, (current) => ({ ...current, name: value }))
+                }
+                onRollNoChange={(value) =>
+                  mutateRow(row.id, (current) => ({ ...current, rollNo: value }))
                 }
                 onSetChange={(value) =>
                   mutateRow(row.id, (current) => ({ ...current, set: value }))

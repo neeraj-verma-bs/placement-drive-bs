@@ -11,6 +11,7 @@ export async function GET() {
     rows: docs.map((doc) => ({
       id: doc._id,
       name: doc.name,
+      rollNo: doc.rollNo,
       set: doc.set,
       questions: doc.questions,
       updatedAt: doc.updatedAt,
