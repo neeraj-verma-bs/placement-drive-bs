@@ -27,6 +27,7 @@ import {
   CRITERIA,
   QUESTIONS,
   SETS,
+  questionLabel,
   emptyRow,
   type CriterionKey,
   type Grade,
@@ -250,7 +251,7 @@ function Sheet() {
                     colSpan={CRITERIA.length + 1}
                     className="border border-zinc-200 px-2 py-2 text-center font-semibold dark:border-zinc-800"
                   >
-                    Q{question + 1}
+                    {questionLabel(question)}
                   </th>
                 ))}
                 <th

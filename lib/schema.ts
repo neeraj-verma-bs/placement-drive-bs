@@ -3,7 +3,7 @@
 export const GRADES = ["A", "B", "C", "D", "E"] as const;
 export type Grade = (typeof GRADES)[number];
 
-export const SETS = ["1", "2", "3", "4", "5"] as const;
+export const SETS = ["A", "B", "C"] as const;
 export type SetId = (typeof SETS)[number];
 
 /** The four graded criteria, in column order, plus the free-text remark. */
@@ -19,6 +19,14 @@ export type CriterionKey = (typeof CRITERIA)[number]["key"];
 /** Each paper has exactly 3 questions. */
 export const QUESTION_COUNT = 3;
 export const QUESTIONS = [0, 1, 2] as const;
+
+/** Marks each question carries, by index. */
+export const QUESTION_MARKS = [6, 7, 7] as const;
+
+/** e.g. `Q1 (6 marks)` — the heading used everywhere a question is labelled. */
+export function questionLabel(question: number): string {
+  return `Q${question + 1} (${QUESTION_MARKS[question]} marks)`;
+}
 
 export type QuestionScore = Record<CriterionKey, Grade | ""> & {
   remark: string;

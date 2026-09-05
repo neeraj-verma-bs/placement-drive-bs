@@ -1,8 +1,9 @@
 # Placement Drive — subjective round evaluation sheet
 
-Evaluators score students on the subjective round: 5 paper sets, 3 questions per
-set, one set per student. Each question is graded **A–E** on Logic, Explanation,
-Time Complexity and Space Complexity, plus a free-text Remark.
+Evaluators score students on the subjective round: 3 paper sets (**A**, **B**,
+**C**), 3 questions per set, one set per student. Q1 carries 6 marks, Q2 and Q3
+carry 7 marks each. Each question is graded **A–E** on Logic, Explanation, Time
+Complexity and Space Complexity, plus a free-text Remark.
 
 ## Screens
 

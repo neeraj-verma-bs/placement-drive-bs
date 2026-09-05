@@ -9,6 +9,7 @@ import {
   CRITERIA,
   QUESTIONS,
   SETS,
+  questionLabel,
   type CriterionKey,
   type Grade,
   type QuestionScore,
@@ -147,7 +148,7 @@ export default function StudentCard({
                     onClick={() => setOpenQuestion(expanded ? -1 : question)}
                     className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
-                    <span>Q{question + 1}</span>
+                    <span>{questionLabel(question)}</span>
                     {!expanded && (
                       <span
                         className={`font-mono text-xs font-normal ${
