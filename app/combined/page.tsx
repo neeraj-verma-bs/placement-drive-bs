@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { DownloadIcon } from "@/components/icons";
 import { rowsCollection } from "@/lib/mongodb";
 import {
   CRITERIA,
@@ -73,6 +74,16 @@ export default async function CombinedPage() {
         <span className="text-sm text-zinc-500 dark:text-zinc-400">
           {rows.length} student{rows.length === 1 ? "" : "s"} synced
         </span>
+
+        {rows.length > 0 && (
+          <a
+            href="/api/rows/export"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          >
+            <DownloadIcon className="size-4" />
+            Download spreadsheet
+          </a>
+        )}
       </div>
 
       {rows.length === 0 ? (

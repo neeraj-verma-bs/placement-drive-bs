@@ -10,7 +10,7 @@ Complexity and Space Complexity, plus a free-text Remark.
 | Route       | What it is                                                                                    |
 | ----------- | --------------------------------------------------------------------------------------------- |
 | `/`         | **My sheet** — the evaluator's own spreadsheet. Lives in `localStorage`, never auto-uploaded.  |
-| `/combined` | **Combined list** — everything every evaluator has synced, read from MongoDB.                 |
+| `/combined` | **Combined list** — everything every evaluator has synced, read from MongoDB. Downloadable as `.xlsx`. |
 | `/login`    | The single password gate.                                                                     |
 
 The individual sheet reaches the server *only* when **Sync to combined list** is
@@ -70,6 +70,7 @@ app/
   login/                the gate
   api/sync/route.ts     idempotent upsert
   api/rows/route.ts     combined list as JSON
+  api/rows/export/…     combined list as an .xlsx download
   api/auth/…            login / logout
 components/
   sheet-editor.tsx      the localStorage-backed spreadsheet
