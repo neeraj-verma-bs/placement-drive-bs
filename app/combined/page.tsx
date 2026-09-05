@@ -69,16 +69,19 @@ export default async function CombinedPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h1 className="text-sm font-semibold">Combined list</h1>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          {rows.length} student{rows.length === 1 ? "" : "s"} synced
-        </span>
+      {/* Stacks below `sm`: title and count apart, download centred underneath. */}
+      <div className="flex flex-col gap-2 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 dark:border-zinc-800">
+        <div className="flex items-center justify-between gap-3 sm:contents">
+          <h1 className="text-sm font-semibold">Combined list</h1>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            {rows.length} student{rows.length === 1 ? "" : "s"} synced
+          </span>
+        </div>
 
         {rows.length > 0 && (
           <a
             href="/api/rows/export"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            className="inline-flex items-center justify-center gap-1.5 self-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 sm:ml-auto sm:self-auto dark:border-zinc-700 dark:hover:bg-zinc-800"
           >
             <DownloadIcon className="size-4" />
             Download spreadsheet

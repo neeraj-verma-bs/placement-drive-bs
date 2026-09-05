@@ -10,7 +10,7 @@ import {
 } from "react";
 import GradeSelect from "@/components/grade-select";
 import ConfirmDialog from "@/components/confirm-dialog";
-import { TrashIcon } from "@/components/icons";
+import { SyncIcon, TrashIcon } from "@/components/icons";
 import RowStatusBadge from "@/components/row-status-badge";
 import StudentCard from "@/components/student-card";
 import {
@@ -185,43 +185,57 @@ function Sheet() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={addRow}
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          Add student
-        </button>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          {rows.length} row{rows.length === 1 ? "" : "s"} · saved locally
-        </span>
+      {/*
+        Below `sm` this stacks: "Add student" and the row count sit apart on the
+        first line, the sync button is centred on its own line underneath. From
+        `sm` up, `contents` dissolves the wrappers so everything lays out as one
+        row with the sync button pushed right.
+      */}
+      <div className="flex flex-col gap-2 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 dark:border-zinc-800">
+        <div className="flex items-center justify-between gap-3 sm:contents">
+          <button
+            type="button"
+            onClick={addRow}
+            className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+          >
+            Add student
+          </button>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            {rows.length} row{rows.length === 1 ? "" : "s"} · saved locally
+          </span>
+        </div>
 
-        {outcome && (
-          <span className="text-sm text-green-700 dark:text-green-400">
-            {outcome.added} added, {outcome.updated} updated,{" "}
-            {outcome.unchanged} unchanged
-            {outcome.skipped > 0 && `, ${outcome.skipped} skipped`}
-          </span>
-        )}
-        {error && (
-          <span role="alert" className="text-sm text-red-600 dark:text-red-400">
-            {error}
-          </span>
-        )}
-        {unnamed > 0 && (
-          <span className="text-sm text-amber-700 dark:text-amber-400">
-            {unnamed} row{unnamed === 1 ? "" : "s"} without a name won&apos;t
-            sync
-          </span>
-        )}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 empty:hidden sm:contents">
+          {outcome && (
+            <span className="text-sm text-green-700 dark:text-green-400">
+              {outcome.added} added, {outcome.updated} updated,{" "}
+              {outcome.unchanged} unchanged
+              {outcome.skipped > 0 && `, ${outcome.skipped} skipped`}
+            </span>
+          )}
+          {error && (
+            <span
+              role="alert"
+              className="text-sm text-red-600 dark:text-red-400"
+            >
+              {error}
+            </span>
+          )}
+          {unnamed > 0 && (
+            <span className="text-sm text-amber-700 dark:text-amber-400">
+              {unnamed} row{unnamed === 1 ? "" : "s"} without a name won&apos;t
+              sync
+            </span>
+          )}
+        </div>
 
         <button
           type="button"
           onClick={sync}
           disabled={syncing || pending.length === 0}
-          className="ml-auto rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
+          className="inline-flex items-center justify-center gap-1.5 self-center rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium disabled:opacity-50 sm:ml-auto sm:self-auto dark:border-zinc-700"
         >
+          <SyncIcon className={`size-4 ${syncing ? "animate-spin" : ""}`} />
           {syncing
             ? "Syncing…"
             : `Sync to combined list${pending.length ? ` (${pending.length})` : ""}`}
